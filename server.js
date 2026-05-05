@@ -24,23 +24,39 @@ app.post("/analyze", upload.single("image"), async (req, res) => {
     const imageBase64 = req.file.buffer.toString("base64");
 
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: [
+  model: "gpt-4o-mini",
+  input: [
+    {
+      role: "user",
+      content: [
         {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: "Classify this waste item into compost, recycling, or garbage in Toronto. Return JSON with bin and reason.",
-            },
-            {
-              type: "input_image",
-              image_url: `data:image/jpeg;base64,${imageBase64}`,
-            },
-          ],
+          type: "input_text",
+          text: `
+You are WasteWise AI TYS.
+
+Analyze the uploaded waste item and return ONLY valid JSON.
+Do not use markdown.
+Do not wrap the answer in triple backticks.
+Do not include any extra text.
+
+Return exactly this format:
+{
+  "item": "short item name",
+  "bin": "compost" | "recycling" | "trash" | "unsure",
+  "reason": "short explanation"
+}
+
+Use Toronto-style waste sorting logic.
+`
+        },
+        {
+          type: "input_image",
+          image_url: `data:image/jpeg;base64,${imageBase64}`,
         },
       ],
-    });
+    },
+  ],
+});
 
     res.json({ result: response.output_text });
   } catch (err) {
